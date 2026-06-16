@@ -1,0 +1,280 @@
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:afara_project/shared/navbar.dart';
+import 'package:afara_project/shared/footer.dart';
+
+
+class BusinessLoginPage extends StatefulWidget {
+  const BusinessLoginPage({super.key});
+
+  @override
+  State<BusinessLoginPage> createState() => _BusinessLoginPageState();
+}
+
+class _BusinessLoginPageState extends State<BusinessLoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  // final _orgUrlController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF162A63),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const TopNavigation(),
+            // MAIN HERO / BODY CONTENT WITH GRADIENT BACKGROUND
+            Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - 70,
+              ),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF5383B8), Color(0xFF13224E)],
+                ),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _mainTabButton(
+                        'For Individuals',
+                        isActive: false,
+                        onTap: () => context.go('/auth/individual/login'),
+                      ),
+                      _mainTabButton(
+                        'For Businesses',
+                        isActive: true,
+                        onTap: () => context.go('/auth/business/login'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 850),
+                      padding: const EdgeInsets.all(40.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12.0),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.15),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Sign In to Your Business Account',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              bool isWide =
+                                  constraints.maxWidth >
+                                  700; // Adjusted breakpoint for 3 fields
+                              if (isWide) {
+                                return Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildInputField(
+                                        label: 'Email Address',
+                                        hint: 'Enter your email',
+                                        controller: _emailController,
+                                        obscure: false,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 20),
+
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: _buildInputField(
+                                        label: 'Password',
+                                        hint: 'Enter your password',
+                                        controller: _passwordController,
+                                        obscure: true,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return Column(
+                                  children: [
+                                    _buildInputField(
+                                      label: 'Email Address',
+                                      hint: 'Enter your email',
+                                      controller: _emailController,
+                                      obscure: false,
+                                    ),
+
+                                    const SizedBox(height: 16),
+                                    _buildInputField(
+                                      label: 'Password',
+                                      hint: 'Enter your password',
+                                      controller: _passwordController,
+                                      obscure: true,
+                                    ),
+                                  ],
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: 180,
+                            height: 46,
+                            child: ElevatedButton(
+                              onPressed: ()  {
+                                
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF162A63),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                              ),
+                              child: const Text('Continue'),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+                          _formFooterLink(
+                            'Forgot Password?',
+                            onTap: () =>
+                                context.go('/auth/business/forgot-password'),
+                          ),
+                          const SizedBox(height: 8),
+                          _formFooterLink(
+                            'New Afara customer? Sign up for free',
+                            onTap: () => context.go('/auth/business/register'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const MainFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _mainTabButton(
+    String title, {
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isActive ? Colors.white : Colors.transparent,
+              width: 3.0,
+            ),
+          ),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.white.withOpacity(0.5),
+            fontSize: 26,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required bool obscure,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscure,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 14,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 16,
+            ),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.04),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.25)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: const BorderSide(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _formFooterLink(String text, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.8),
+          fontSize: 13,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}
