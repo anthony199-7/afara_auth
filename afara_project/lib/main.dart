@@ -1,16 +1,12 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:afara_project/router/app_router.dart';
 import 'package:flutter/material.dart';
-
-
-import 'package:afara_project/core/theme/app_theme.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize services
-
-  runApp(const AfaraApp());
+  runApp(const ProviderScope(child: AfaraApp()));
 }
 
 class AfaraApp extends StatelessWidget {

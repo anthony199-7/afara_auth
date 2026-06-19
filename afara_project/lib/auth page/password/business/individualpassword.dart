@@ -1,8 +1,9 @@
-
+import 'package:afara_project/core/api_client.dart';
+import 'package:afara_project/features/auth/auth_service.dart';
 import 'package:afara_project/shared/footer.dart';
 
 import 'package:flutter/material.dart';
-
+import 'package:go_router/go_router.dart';
 
 class IndividualPassword extends StatelessWidget {
   final String email;
@@ -63,19 +64,52 @@ class _MainVerificationSuccessContentState
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _retypePasswordController =
       TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _registerUser() async {
-    if (_passwordController.text != _retypePasswordController.text) {
-      ('Passwords do not match.');
+    final password = _passwordController.text.trim();
+    final confirmPassword = _retypePasswordController.text.trim();
+
+    if (password.isEmpty || confirmPassword.isEmpty) {
+      _showMessage('Please enter and confirm your password.');
       return;
     }
 
-    if (_passwordController.text.length < 12) {
-    ('Password must be at least 12 characters.');
+    if (password != confirmPassword) {
+      _showMessage('Passwords do not match.');
       return;
     }
 
-    // Registration logic here
+    if (password.length < 12) {
+      _showMessage('Password must be at least 12 characters.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final authService = AuthService(ApiClient());
+      await authService.register(widget.email, password);
+      if (!mounted) return;
+      _showMessage('Account created. Please verify your email.');
+      context.goNamed(
+        'individual-verification',
+        queryParameters: {'email': widget.email},
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -87,8 +121,6 @@ class _MainVerificationSuccessContentState
 
   @override
   Widget build(BuildContext context) {
-    
-
     return Center(
       child: Container(
         width: 950,
@@ -182,9 +214,7 @@ class _MainVerificationSuccessContentState
                   ),
                   const SizedBox(height: 4),
                   InkWell(
-                    onTap: () {
-                      
-                    },
+                    onTap: () {},
                     child: const Text(
                       'Suggest a password',
                       style: TextStyle(
@@ -200,7 +230,7 @@ class _MainVerificationSuccessContentState
                   SizedBox(
                     width: 160,
                     child: ElevatedButton(
-                      onPressed: _registerUser,
+                      onPressed: _isLoading ? null : _registerUser,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xff12235a),
@@ -209,8 +239,16 @@ class _MainVerificationSuccessContentState
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      child: 
-                           const Text(
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xff12235a),
+                              ),
+                            )
+                          : const Text(
                               'Submit',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,

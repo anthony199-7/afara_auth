@@ -1,23 +1,65 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
+import 'package:afara_project/features/auth/auth_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:afara_project/shared/navbar.dart';
 import 'package:afara_project/shared/footer.dart';
 
-
-class BusinessLoginPage extends StatefulWidget {
+class BusinessLoginPage extends ConsumerStatefulWidget {
   const BusinessLoginPage({super.key});
 
   @override
-  State<BusinessLoginPage> createState() => _BusinessLoginPageState();
+  ConsumerState<BusinessLoginPage> createState() => _BusinessLoginPageState();
 }
 
-class _BusinessLoginPageState extends State<BusinessLoginPage> {
+class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
   // final _orgUrlController = TextEditingController();
+
+  Future<void> _submitLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Please enter both email and password.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final success = await ref
+          .read(authNotifierProvider.notifier)
+          .login(email, password);
+      if (!mounted) return;
+      if (success) {
+        context.go('/');
+      } else {
+        _showMessage(
+          ref.read(authNotifierProvider).errorMessage ??
+              'Login failed. Please try again.',
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   void dispose() {
@@ -148,9 +190,7 @@ class _BusinessLoginPageState extends State<BusinessLoginPage> {
                             width: 180,
                             height: 46,
                             child: ElevatedButton(
-                              onPressed: ()  {
-                                
-                              },
+                              onPressed: _isLoading ? null : _submitLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: const Color(0xFF162A63),
@@ -158,7 +198,16 @@ class _BusinessLoginPageState extends State<BusinessLoginPage> {
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                               ),
-                              child: const Text('Continue'),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFF162A63),
+                                      ),
+                                    )
+                                  : const Text('Continue'),
                             ),
                           ),
 

@@ -1,9 +1,9 @@
 // ignore_for_file: unrelated_type_equality_checks
 
+import 'package:afara_project/features/auth/auth_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-
 
 class TopNavigation extends StatelessWidget {
   const TopNavigation({super.key});
@@ -29,8 +29,6 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
-
     return Container(
       color: const Color(0xFF3873AF),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
@@ -52,11 +50,9 @@ class _TopBar extends StatelessWidget {
           const Spacer(),
 
           /// login
-         
         ],
       ),
     );
-    
   }
 }
 
@@ -64,17 +60,20 @@ class _TopBar extends StatelessWidget {
 /// MAIN NAV
 ////////////////////////////////////////////////////////////
 
-class MainNavigation extends StatelessWidget {
+class MainNavigation extends ConsumerWidget {
   const MainNavigation({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.sizeOf(context).width < 900;
+    final authState = ref.watch(authNotifierProvider);
 
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-      child: isMobile ? _MobileNav() : _DesktopNav(),
+      child: isMobile
+          ? _MobileNav(isLoggedIn: authState.isAuthenticated)
+          : _DesktopNav(isLoggedIn: authState.isAuthenticated),
     );
   }
 }
@@ -84,12 +83,12 @@ class MainNavigation extends StatelessWidget {
 ////////////////////////////////////////////////////////////
 
 class _DesktopNav extends StatelessWidget {
-  const _DesktopNav();
+  final bool isLoggedIn;
+
+  const _DesktopNav({required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
-    
-
     return Row(
       children: [
         /// LOGO → landing
@@ -114,14 +113,20 @@ class _DesktopNav extends StatelessWidget {
 
         const Spacer(),
 
-        /// buttons
-        PrimaryButton("Get Started", onTap: () => context.go('/auth/individual/register')),
-        const SizedBox(width: 16),
-        OutlineButtonWidget("Login", onTap: () => context.go('/auth/individual/login')),
-        const SizedBox(width: 16),
-       
-        ]
-      ,
+        if (!isLoggedIn) ...[
+          PrimaryButton(
+            "Get Started",
+            onTap: () => context.go('/auth/individual/register'),
+          ),
+          const SizedBox(width: 16),
+          OutlineButtonWidget(
+            "Login",
+            onTap: () => context.go('/auth/individual/login'),
+          ),
+          const SizedBox(width: 16),
+        ] else
+          const _ProfileMenu(),
+      ],
     );
   }
 }
@@ -131,12 +136,12 @@ class _DesktopNav extends StatelessWidget {
 ////////////////////////////////////////////////////////////
 
 class _MobileNav extends StatelessWidget {
-  const _MobileNav();
+  final bool isLoggedIn;
+
+  const _MobileNav({required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
-  
-
     return Row(
       children: [
         const Image(
@@ -144,15 +149,28 @@ class _MobileNav extends StatelessWidget {
           height: 40,
         ),
         const SizedBox(width: 16),
-
         const Spacer(),
-      
+        if (isLoggedIn)
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: InkWell(
               onTap: () => context.go('/profile'),
               child: const Icon(Icons.account_circle, color: Color(0xFF191970)),
             ),
+          )
+        else
+          Row(
+            children: [
+              PrimaryButton(
+                'Get Started',
+                onTap: () => context.go('/auth/individual/register'),
+              ),
+              const SizedBox(width: 8),
+              OutlineButtonWidget(
+                'Login',
+                onTap: () => context.go('/auth/individual/login'),
+              ),
+            ],
           ),
         IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
       ],
@@ -254,6 +272,65 @@ class _NavItems extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+}
+
+class _ProfileMenu extends ConsumerWidget {
+  const _ProfileMenu();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authNotifierProvider);
+    final email = authState.userProfile?['email'] ?? 'Profile';
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.account_circle, color: Color(0xFF191970)),
+      tooltip: 'Profile options',
+      onSelected: (value) async {
+        if (value == 'profile') {
+          context.go('/profile');
+        } else if (value == 'settings') {
+          context.go('/profile');
+        } else if (value == 'logout') {
+          await ref.read(authNotifierProvider.notifier).logout();
+          if (context.mounted) {
+            context.go('/');
+          }
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'profile',
+          child: Row(
+            children: [
+              const Icon(Icons.person_outline, size: 18),
+              const SizedBox(width: 8),
+              Text(email),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'settings',
+          child: Row(
+            children: [
+              Icon(Icons.settings_outlined, size: 18),
+              SizedBox(width: 8),
+              Text('Settings'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, size: 18),
+              SizedBox(width: 8),
+              Text('Logout'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

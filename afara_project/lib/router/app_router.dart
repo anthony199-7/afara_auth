@@ -1,22 +1,21 @@
-import 'package:afara_project/features/auth/business_login.dart';
-import 'package:afara_project/features/auth/password/business/individualpassword.dart';
+import 'package:afara_project/auth%20page/business_login.dart';
+import 'package:afara_project/auth%20page/password/business/individualpassword.dart';
 
-import 'package:afara_project/features/auth/success/business_success.dart';
-import 'package:afara_project/features/auth/for_business_registration.dart';
-import 'package:afara_project/features/auth/for_individual_registration.dart';
-import 'package:afara_project/features/auth/individuals_login.dart';
-import 'package:afara_project/features/auth/password/business/passwordbusiness.dart';
-import 'package:afara_project/features/auth/verificationpage/business_verification.dart';
-import 'package:afara_project/features/auth/verificationpage/verification_personal.dart'
+import 'package:afara_project/auth%20page/success/business_success.dart';
+import 'package:afara_project/auth%20page/for_business_registration.dart';
+import 'package:afara_project/auth%20page/for_individual_registration.dart';
+import 'package:afara_project/auth%20page/individuals_login.dart';
+import 'package:afara_project/auth%20page/password/business/passwordbusiness.dart';
+import 'package:afara_project/auth%20page/verificationpage/business_verification.dart';
+import 'package:afara_project/auth%20page/verificationpage/verification_personal.dart'
     as personal;
+import 'package:afara_project/features/auth/profile_screen.dart';
 import 'package:afara_project/features/pages/pricing/bussiness_pricing.dart';
 import 'package:afara_project/features/pages/pricing/individual_pricing.dart';
-
-
 import 'package:afara_project/features/pages/resources/education_resources.dart';
 import 'package:afara_project/landingpage.dart';
-import 'package:afara_project/shared/navbar.dart';
 import 'package:afara_project/shared/footer.dart';
+import 'package:afara_project/shared/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,12 +26,11 @@ import 'package:go_router/go_router.dart';
 /// without providing their own top-level Scaffolds.
 class AppRouter {
   // Get the auth notifier instance from the ServiceLocator
-  
 
   static final router = GoRouter(
     initialLocation: '/',
+
     // This makes the router reactive to auth state changes
-    
     routes: [
       ShellRoute(
         // The builder provides the 'child' which represents the current page
@@ -70,6 +68,11 @@ class AppRouter {
             path: '/resources',
             name: 'resources',
             builder: (context, state) => const Resources(),
+          ),
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const ProfileScreen(),
           ),
         ],
       ),
@@ -125,7 +128,7 @@ class AppRouter {
               return personal.VerificationPage(email: email);
             },
           ),
-       /*   GoRoute(
+          /*   GoRoute(
             path: 'individual/forgot-password',
             name: 'individual-forgot-password',
           

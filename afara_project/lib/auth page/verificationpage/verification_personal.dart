@@ -1,3 +1,5 @@
+import 'package:afara_project/core/api_client.dart';
+import 'package:afara_project/features/auth/auth_service.dart';
 import 'package:afara_project/shared/footer.dart';
 import 'package:afara_project/shared/navbar.dart';
 import 'package:flutter/material.dart';
@@ -25,13 +27,13 @@ class VerificationPage extends StatelessWidget {
             ],
           ),
         ),
-        child: const SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Column(
             children: [
-              TopNavigation(),
-              _NavigationTabs(), // Renamed to avoid conflict
-              MainVerificationSection(),
-              MainFooter(),
+              const TopNavigation(),
+              const _NavigationTabs(),
+              MainVerificationSection(email: email),
+              const MainFooter(),
             ],
           ),
         ),
@@ -83,7 +85,9 @@ class _NavigationTabs extends StatelessWidget {
 
 // --- 2. MAIN CONTENT RESPONSE LAYOUT ---
 class MainVerificationSection extends StatelessWidget {
-  const MainVerificationSection({super.key});
+  final String email;
+
+  const MainVerificationSection({super.key, required this.email});
 
   @override
   Widget build(BuildContext context) {
@@ -94,21 +98,24 @@ class MainVerificationSection extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth < 850) {
-              return const Column(
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  VerificationInputCard(),
-                  SizedBox(height: 50),
-                  SecurityIllustration(),
+                  VerificationInputCard(email: email),
+                  const SizedBox(height: 50),
+                  const SecurityIllustration(),
                 ],
               );
             } else {
-              return const Row(
+              return Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(flex: 11, child: VerificationInputCard()),
-                  SizedBox(width: 40),
-                  Expanded(flex: 9, child: SecurityIllustration()),
+                  Expanded(
+                    flex: 11,
+                    child: VerificationInputCard(email: email),
+                  ),
+                  const SizedBox(width: 40),
+                  const Expanded(flex: 9, child: SecurityIllustration()),
                 ],
               );
             }
@@ -120,8 +127,64 @@ class MainVerificationSection extends StatelessWidget {
 }
 
 // Left Verification Module Card
-class VerificationInputCard extends StatelessWidget {
-  const VerificationInputCard({super.key});
+class VerificationInputCard extends StatefulWidget {
+  final String email;
+
+  const VerificationInputCard({super.key, required this.email});
+
+  @override
+  State<VerificationInputCard> createState() => _VerificationInputCardState();
+}
+
+class _VerificationInputCardState extends State<VerificationInputCard> {
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    for (final node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _submitOtp() async {
+    final code = _controllers.map((c) => c.text).join();
+    if (code.length != 6) {
+      _showMessage('Please enter the full 6-digit code.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final authService = AuthService(ApiClient());
+      await authService.verifyOtp(widget.email, code);
+      if (!mounted) return;
+      _showMessage('Account verified successfully.');
+      context.goNamed('individual-login');
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,9 +207,13 @@ class VerificationInputCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Please enter the verification code\nsent to (xxx)-xxx-xx91',
-            style: TextStyle(fontSize: 14, color: Colors.white70, height: 1.4),
+          Text(
+            'Please enter the verification code\nsent to ${widget.email}',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white70,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 32),
           const Text(
@@ -158,26 +225,15 @@ class VerificationInputCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-
-          // 6-Digit input segment matching image_0edda2.png
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(
-              6,
-              (index) => _buildOtpField(context, index),
-            ),
+            children: List.generate(6, (index) => _buildOtpField(index)),
           ),
           const SizedBox(height: 36),
-
-          // Submission Action Button
           SizedBox(
             width: 140,
             child: ElevatedButton(
-              onPressed: () {
-                context.goNamed(
-                  'individual-login',
-                ); // Assuming login after verification
-              },
+              onPressed: _isLoading ? null : _submitOtp,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
@@ -186,13 +242,22 @@ class VerificationInputCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                'Submit',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff12235a),
-                ),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xff12235a),
+                      ),
+                    )
+                  : const Text(
+                      'Submit',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xff12235a),
+                      ),
+                    ),
             ),
           ),
         ],
@@ -200,11 +265,13 @@ class VerificationInputCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOtpField(BuildContext context, int index) {
+  Widget _buildOtpField(int index) {
     return SizedBox(
       width: 44,
       height: 52,
       child: TextFormField(
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         style: const TextStyle(
@@ -218,11 +285,12 @@ class VerificationInputCard extends StatelessWidget {
         ],
         onChanged: (value) {
           if (value.length == 1 && index < 5) {
-            FocusScope.of(context).nextFocus();
+            _focusNodes[index + 1].requestFocus();
           }
           if (value.isEmpty && index > 0) {
-            FocusScope.of(context).previousFocus();
+            _focusNodes[index - 1].requestFocus();
           }
+          setState(() {});
         },
         decoration: InputDecoration(
           filled: true,
