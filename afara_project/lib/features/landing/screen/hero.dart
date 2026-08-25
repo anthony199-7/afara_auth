@@ -6,10 +6,9 @@ class HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Brand colors derived from the design
-    const Color primaryColor = Color(
-      0xFF1E1F6B,
-    ); // Dark blue for buttons and text
+    // Colors matching the design
+    const Color buttonBlue = Color(0xFF1D5293);
+    const Color buttonOutline = Color(0xFF3897F0);
 
     final bool isMobile = MediaQuery.of(context).size.width < 768;
     final bool isTablet = MediaQuery.of(context).size.width < 1024;
@@ -17,7 +16,6 @@ class HeroSection extends StatelessWidget {
     final double heroHeight = isMobile ? 500 : (isTablet ? 600 : 722);
 
     return SizedBox(
-      // Responsive height for the hero section
       height: heroHeight,
       width: double.infinity,
       child: Stack(
@@ -25,129 +23,115 @@ class HeroSection extends StatelessWidget {
         children: [
           // Background Image
           Image.asset(
-            'lib/assets/images/Hero_img.png', // Your specified image path
-            fit: BoxFit.cover, // Ensures the image covers the entire section
+            'lib/assets/images/background_image.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
           ),
 
           // Content Overlay
           Align(
             alignment: isMobile ? Alignment.center : Alignment.centerRight,
             child: Container(
-              // Restrict content width for better readability on wide screens
               constraints: BoxConstraints(
                 maxWidth: isMobile
                     ? MediaQuery.of(context).size.width * 0.9
-                    : MediaQuery.of(context).size.width * 0.5,
+                    : MediaQuery.of(context).size.width * 0.52,
               ),
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16.0 : 20.0,
+                horizontal: isMobile ? 16.0 : 40.0,
                 vertical: isMobile ? 16.0 : 0,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: isMobile
                     ? CrossAxisAlignment.center
-                    : CrossAxisAlignment.start,
+                    : CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Main Heading
                   Text(
-                    'Your Gateway to Trusted and Secure Digital Access',
-                    textAlign: isMobile ? TextAlign.center : TextAlign.left,
+                    'Your Gateway toTrusted\nand Secure Digital Access',
+                    textAlign: isMobile ? TextAlign.center : TextAlign.center,
                     style: TextStyle(
-                      color: Colors.black,
-                      fontSize: isMobile ? 28 : (isTablet ? 36 : 48),
+                      color: Colors.white,
+                      fontSize: isMobile ? 28 : (isTablet ? 36 : 46),
                       fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
-                      height: 1.40,
-                      letterSpacing: -0.96,
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
                     ),
                   ),
                   const SizedBox(height: 20),
 
                   // Sub-heading
                   Text(
-                    'Protect your digital identity with enterprise grade security and seamless authentication',
-                    textAlign: isMobile ? TextAlign.center : TextAlign.left,
+                    'Protect your digital identity with enterprise grade\n security and seamless authentication',
+                    textAlign: isMobile ? TextAlign.center : TextAlign.center,
                     style: TextStyle(
-                      color: Colors.black,
-                      fontSize: isMobile ? 16 : (isTablet ? 18 : 24),
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: isMobile ? 14 : (isTablet ? 16 : 18),
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w400,
-                      height: 1.40,
-                      letterSpacing: -0.48,
+                      height: 1.35,
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 28),
 
-                  // Action Buttons
+                  // Primary Button (Filled)
                   Center(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Primary Button (Filled)
                         SizedBox(
-                          width: isMobile ? double.infinity : 284,
-                          height: 36,
+                          width: isMobile ? double.infinity : 320,
+                          height: 48,
                           child: ElevatedButton(
                             onPressed: () {
-                              // Handle primary action (e.g., navigate to sign-up)
-                              context.go("/auth/individual/register");
+                              context.go('/auth/individual/register');
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isMobile ? 20 : 40,
+                              backgroundColor: const Color.fromARGB(
+                                103,
+                                1,
+                                12,
+                                77,
                               ),
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                             ),
-                            child: Text(
+                            child: const Text(
                               'Sign Up for Personal Account',
-                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: isMobile ? 14 : 16,
+                                fontSize: 15,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w600,
-                                height: 1.40,
-                                letterSpacing: -0.32,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-
-                        // Secondary Button (Outlined)
+                        const SizedBox(height: 12),
                         SizedBox(
-                          width: 284, // Fixed width for consistency
-                          height: 36,
+                          width: isMobile ? double.infinity : 320,
+                          height: 48,
                           child: OutlinedButton(
                             onPressed: () {
-                              context.go('/auth/business/register');
+                              context.go('/auth/individual/login');
                             },
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                color: primaryColor,
-                                width: 2,
-                              ),
+                              side: const BorderSide(color: Colors.white),
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                             ),
                             child: const Text(
                               'Get Started with Business Solutions',
-                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Color(0xFF191970),
-                                fontSize: 14,
+                                color: Colors.white,
+                                fontSize: 15,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w600,
-                                height: 1.40,
-                                letterSpacing: -0.32,
                               ),
                             ),
                           ),
@@ -155,6 +139,9 @@ class HeroSection extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  // Secondary Button (Outlined)
                 ],
               ),
             ),

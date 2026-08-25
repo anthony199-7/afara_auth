@@ -45,14 +45,6 @@ services:
       postgres:
         condition: service_healthy
 
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: afara_auth-mailpit
-    restart: always
-    ports:
-      - "1025:1025" # SMTP port
-      - "8025:8025" # Web UI port
-
   api:
     build:
       context: ./backend
@@ -60,29 +52,32 @@ services:
     container_name: afara_auth-api
     restart: always
     ports:
-      - "8081:8081"
+      - "8082:8082"
+    env_file:
+      - ./backend/.env
     environment:
-      - PORT=8081
-      - DB_HOST=postgres
-      - DB_PORT=5433
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-afara_auth}
-      - DB_SSLMODE=disable
-      - KEYCLOAK_URL=http://keycloak:8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-myrealm}
-      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-backend-api}
-      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET:-myclientsecret}
-      - JWT_SECRET=${JWT_SECRET:-myjwtsecretkeywhichisverylongandsecure123!}
-      - SMTP_HOST=mailpit
-      - SMTP_PORT=1025
-      - SMTP_SENDER=noreply@authapp.local
+      PORT: 8082
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-afara_auth}
+      DB_SSLMODE: disable
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-myrealm}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-afara-auth-client}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-myclientsecret}
+      JWT_SECRET: ${JWT_SECRET:-myjwtsecretkeywhichisverylongandsecure123!}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SENDER: ${SMTP_SENDER:-okekeanthony7528@gmail.com}
+      SMTP_USER: ${SMTP_USER:-okekeanthony7528@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-aefg xsct kkel zlrm}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
     depends_on:
       postgres:
         condition: service_healthy
       keycloak:
-        condition: service_started
-      mailpit:
         condition: service_started
 
 volumes:

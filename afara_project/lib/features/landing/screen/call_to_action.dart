@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class CallToActionSection extends StatelessWidget {
@@ -6,6 +7,8 @@ class CallToActionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final bool isMobile = AppTheme.isMobile(context);
+    final double buttonWidth = isMobile ? double.infinity : 320;
 
     return Container(
       width: double.infinity,
@@ -19,7 +22,9 @@ class CallToActionSection extends StatelessWidget {
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
+          constraints: BoxConstraints(
+            maxWidth: AppTheme.responsivePageWidth(context),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -49,12 +54,12 @@ class CallToActionSection extends StatelessWidget {
               const SizedBox(height: 40),
 
               /// OUTLINE BUTTON
-              _outlineButton(),
+              _outlineButton(buttonWidth),
 
               const SizedBox(height: 18),
 
               /// FILLED BUTTON
-              _filledButton(),
+              _filledButton(buttonWidth),
             ],
           ),
         ),
@@ -62,9 +67,9 @@ class CallToActionSection extends StatelessWidget {
     );
   }
 
-  Widget _outlineButton() {
+  Widget _outlineButton(double width) {
     return Container(
-      width: 320,
+      width: width,
       height: 52,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white, width: 1.5),
@@ -78,9 +83,9 @@ class CallToActionSection extends StatelessWidget {
     );
   }
 
-  Widget _filledButton() {
+  Widget _filledButton(double width) {
     return Container(
-      width: 320,
+      width: width,
       height: 52,
       decoration: BoxDecoration(
         color: Colors.white,

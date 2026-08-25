@@ -13,11 +13,14 @@ class MainFooter extends StatelessWidget {
         ? 40
         : 80;
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 900;
+
     return Container(
       color: const Color(0xFF191970),
       padding: EdgeInsets.symmetric(
         vertical: verticalPadding,
-        horizontal: horizontalPadding,
+        //horizontal: horizontalPadding,
       ),
       child: Column(
         children: [
@@ -29,7 +32,7 @@ class MainFooter extends StatelessWidget {
             children: [
               // Brand & Newsletter Section
               SizedBox(
-                width: 300,
+                width: isMobile ? screenWidth * 0.9 : 300,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

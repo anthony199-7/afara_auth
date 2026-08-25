@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class SecuritySection extends StatelessWidget {
@@ -8,7 +9,7 @@ class SecuritySection extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
       child: Column(
         children: [
           // MAIN TITLE
@@ -21,7 +22,7 @@ class SecuritySection extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           const Text(
             "Industry-leading certifications and protocols",
             textAlign: TextAlign.center,
@@ -31,16 +32,18 @@ class SecuritySection extends StatelessWidget {
               fontWeight: FontWeight.w400,
             ),
           ),
-          const SizedBox(height: 64),
+          const SizedBox(height: 50),
 
           // GRID OF CARDS
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Wrap(
-              spacing: 20,
-              runSpacing: 40,
-              alignment: WrapAlignment.center,
+            constraints: BoxConstraints(
+              maxWidth: AppTheme.responsivePageWidth(context),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+
               children: [
+                // Add spacing between the first two cards
                 _SecurityCard(
                   image: Image.asset('lib/assets/images/trophy.png'),
                   title: "ISO 27001\nCertified",
@@ -56,12 +59,13 @@ class SecuritySection extends StatelessWidget {
                       ),
                       TextSpan(
                         text:
-                            " standard, our platform follows strict information security management practices to protect your data.",
+                            " standard,our platform follows strict information security management practices to protect your data.",
                       ),
                     ],
                   ),
                   buttonText: "Read More",
                 ),
+                SizedBox(width:10), // Add spacing between the first two cards
                 _SecurityCard(
                   image: Image.asset('lib/assets/images/padlock.png'),
                   title: "SOC 2\nCompliant",
@@ -83,6 +87,8 @@ class SecuritySection extends StatelessWidget {
                   ),
                   buttonText: "Get Report",
                 ),
+                SizedBox(width: 10), // Add spacing between the first two cards
+
                 _SecurityCard(
                   image: Image.asset('lib/assets/images/padlock.png'),
                   title: "256-bit\nEncryption",
@@ -104,6 +110,7 @@ class SecuritySection extends StatelessWidget {
                   ),
                   buttonText: "See How",
                 ),
+                SizedBox(width: 10), // Add spacing between the last two cards
                 _SecurityCard(
                   image: Image.asset('lib/assets/images/shield.png'),
                   title: "GDPR\nCompliant",
@@ -150,7 +157,7 @@ class _SecurityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 260,
+      width: 290,
       child: Column(
         children: [
           // THE WHITE BOX (Contains Image and Title)
@@ -163,7 +170,7 @@ class _SecurityCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.5),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -187,7 +194,7 @@ class _SecurityCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 30),
 
           // DESCRIPTION (Outside the box)
           RichText(

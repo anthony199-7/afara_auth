@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -46,6 +47,8 @@ class NavigationTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Row(
@@ -65,7 +68,7 @@ class NavigationTabs extends StatelessWidget {
                 ),
               ),
               Container(
-                width: 160,
+                width: isMobile ? 100 : 160,
                 height: 3,
                 color: const Color.fromARGB(255, 29, 20, 83),
               ),
@@ -126,7 +129,7 @@ class PricingCardsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 900,
+        width: AppTheme.responsivePageWidth(context),
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -366,8 +369,8 @@ class SupportCTASection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1050,
-        height: 408,
+        width: AppTheme.responsivePageWidth(context),
+        height: AppTheme.isMobile(context) ? null : 408,
         padding: const EdgeInsets.symmetric(horizontal: 30),
         margin: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
@@ -504,7 +507,7 @@ class FaqAndAppSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1000,
+        width: AppTheme.responsivePageWidth(context),
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: LayoutBuilder(
           builder: (context, constraints) {

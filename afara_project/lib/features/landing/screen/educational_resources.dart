@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class EducationalResourcesSection extends StatelessWidget {
@@ -6,25 +7,30 @@ class EducationalResourcesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 900;
+
+    final bool isMobileLayout = width < AppTheme.mobileBreakpoint;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 20),
       child: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 1232),
+          constraints: BoxConstraints(
+            maxWidth: AppTheme.responsivePageWidth(context),
+          ),
           decoration: BoxDecoration(
             color: const Color(0xFF3873AF),
             borderRadius: BorderRadius.circular(25),
           ),
-          child: isMobile ? _mobileLayout() : _desktopLayout(),
+          child: isMobileLayout
+              ? _mobileLayout(context)
+              : _desktopLayout(context),
         ),
       ),
     );
   }
 
   /// DESKTOP
-  Widget _desktopLayout() {
+  Widget _desktopLayout(BuildContext context) {
     return Row(
       children: [
         /// LEFT CONTENT
@@ -58,12 +64,12 @@ class EducationalResourcesSection extends StatelessWidget {
                 const SizedBox(height: 40),
 
                 /// BUTTON 1
-                _whiteButton("Frequently Asked Questions"),
+                _whiteButton(context, "Frequently Asked Questions"),
 
                 const SizedBox(height: 20),
 
                 /// BUTTON 2
-                _outlineButton("Resources Hub"),
+                _outlineButton(context, "Resources Hub"),
               ],
             ),
           ),
@@ -89,7 +95,7 @@ class EducationalResourcesSection extends StatelessWidget {
   }
 
   /// MOBILE
-  Widget _mobileLayout() {
+  Widget _mobileLayout(BuildContext context) {
     return Column(
       children: [
         ClipRRect(
@@ -126,9 +132,9 @@ class EducationalResourcesSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              _whiteButton("Frequently Asked Questions"),
+              _whiteButton(context, "Frequently Asked Questions"),
               const SizedBox(height: 16),
-              _outlineButton("Resources Hub"),
+              _outlineButton(context, "Resources Hub"),
             ],
           ),
         ),
@@ -136,10 +142,11 @@ class EducationalResourcesSection extends StatelessWidget {
     );
   }
 
-  Widget _whiteButton(String text) {
+  Widget _whiteButton(BuildContext context, String text) {
+    final bool isMobile = AppTheme.isMobile(context);
     return Container(
       height: 60,
-      width: 320,
+      width: isMobile ? double.infinity : 320,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -156,10 +163,11 @@ class EducationalResourcesSection extends StatelessWidget {
     );
   }
 
-  Widget _outlineButton(String text) {
+  Widget _outlineButton(BuildContext context, String text) {
+    final bool isMobile = AppTheme.isMobile(context);
     return Container(
       height: 60,
-      width: 320,
+      width: isMobile ? double.infinity : 320,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white, width: 2),

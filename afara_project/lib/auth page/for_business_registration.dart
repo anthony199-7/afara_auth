@@ -1,3 +1,5 @@
+import 'package:afara_project/core/theme/app_theme.dart';
+
 import 'package:afara_project/shared/footer.dart';
 import 'package:afara_project/shared/navbar.dart';
 import 'package:go_router/go_router.dart';
@@ -78,6 +80,7 @@ class MainContentSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         // If the screen width is small (Mobile/Tablet), stack columns vertically. Otherwise, place side-by-side.
@@ -94,7 +97,10 @@ class MainContentSection extends StatelessWidget {
           );
         } else {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 40),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 20 : 100,
+              vertical: 40,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

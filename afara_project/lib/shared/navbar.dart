@@ -97,6 +97,21 @@ class _DesktopNav extends StatelessWidget {
           child: Image.asset(
             'lib/assets/images/afara_primary logo copy.png',
             height: 50,
+            errorBuilder: (context, error, stackTrace) => SizedBox(
+              height: 50,
+              width: 150,
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.account_balance,
+                    size: 28,
+                    color: Colors.black54,
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Afara', style: Theme.of(context).textTheme.titleMedium),
+                ],
+              ),
+            ),
           ),
         ),
 
@@ -144,9 +159,20 @@ class _MobileNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Image(
-          image: AssetImage('lib/assets/images/afara_primary logo copy.png'),
+        Image.asset(
+          'lib/assets/images/afara_primary logo copy.png',
           height: 40,
+          errorBuilder: (context, error, stackTrace) => Row(
+            children: [
+              const Icon(
+                Icons.account_balance,
+                size: 28,
+                color: Color(0xFF191970),
+              ),
+              const SizedBox(width: 8),
+              Text('Afara', style: Theme.of(context).textTheme.titleMedium),
+            ],
+          ),
         ),
         const SizedBox(width: 16),
         const Spacer(),
@@ -159,21 +185,115 @@ class _MobileNav extends StatelessWidget {
             ),
           )
         else
-          Row(
-            children: [
-              PrimaryButton(
-                'Get Started',
-                onTap: () => context.go('/auth/individual/register'),
-              ),
-              const SizedBox(width: 8),
-              OutlineButtonWidget(
-                'Login',
-                onTap: () => context.go('/auth/individual/login'),
-              ),
-            ],
-          ),
-        IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
+          const _MobileMenu(),
       ],
+    );
+  }
+}
+
+class _MobileMenu extends StatelessWidget {
+  const _MobileMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'feature') {
+          context.go('/');
+        } else if (value == 'price') {
+          context.go('/pricing/individual');
+        } else if (value == 'resources') {
+          context.go('/resources');
+        }
+      },
+      offset: const Offset(0, 40),
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'feature',
+          padding: EdgeInsets.zero,
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.dashboard_outlined,
+                  size: 20,
+                  color: Color(0xFF191970),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Features',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF191970),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'price',
+          padding: EdgeInsets.zero,
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.attach_money_outlined,
+                  size: 20,
+                  color: Color(0xFF191970),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Pricing',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF191970),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'resources',
+          padding: EdgeInsets.zero,
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.library_books_outlined,
+                  size: 20,
+                  color: Color(0xFF191970),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Resources',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF191970),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF191970),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(Icons.menu, color: Colors.white),
+      ),
     );
   }
 }

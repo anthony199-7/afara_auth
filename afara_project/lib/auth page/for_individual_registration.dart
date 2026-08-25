@@ -1,7 +1,7 @@
 import 'package:afara_project/shared/footer.dart';
 import 'package:afara_project/shared/navbar.dart';
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-
 import 'package:go_router/go_router.dart';
 
 class IndividualRegistration extends StatelessWidget {
@@ -81,7 +81,7 @@ class MainContentSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1100,
+        width: AppTheme.responsivePageWidth(context),
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -186,6 +186,8 @@ class RegistrationCardForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
+
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
@@ -213,7 +215,7 @@ class RegistrationCardForm extends StatelessWidget {
                 style: TextStyle(color: Colors.white60, fontSize: 12),
               ),
               InkWell(
-                onTap: () {},
+                onTap: () => context.go('/auth/individual/login'),
                 child: const Text(
                   'Log in here',
                   style: TextStyle(
@@ -310,7 +312,7 @@ class RegistrationCardForm extends StatelessWidget {
 
           // Submission Button
           SizedBox(
-            width: 160,
+            width: isMobile ? double.infinity : 160,
             child: ElevatedButton(
               onPressed: () {
                 context.goNamed(
