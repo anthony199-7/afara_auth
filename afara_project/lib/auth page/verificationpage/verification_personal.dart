@@ -385,39 +385,6 @@ class SecurityIllustration extends StatelessWidget {
                 ),
               ),
             ),
-            // Standalone Person Vector Simulation
-            Positioned(
-              right: 40,
-              bottom: 12,
-              child: Column(
-                children: [
-                  // Floating Thought Bubble Key
-                  Transform.translate(
-                    offset: const Offset(-20, -10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff3b82f6),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.vpn_key,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.accessibility_new,
-                    size: 160,
-                    color: Color(0xff3b82f6),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

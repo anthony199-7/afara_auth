@@ -66,7 +66,6 @@ class NavigationTabHeader extends StatelessWidget {
   }
 }
 
-// 3. RESPONSIVE VERIFICATION CARD & VECTOR SECTION
 class MainVerificationSection extends StatelessWidget {
   const MainVerificationSection({super.key});
 
