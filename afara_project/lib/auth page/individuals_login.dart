@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:afara_project/features/auth/auth_providers.dart';
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,12 +36,22 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
           .read(authNotifierProvider.notifier)
           .login(email, password);
       if (!mounted) return;
+
+      final authState = ref.read(authNotifierProvider);
+
+      if (authState.isOtpRequired && authState.email != null) {
+        context.goNamed(
+          'individual-login-verification',
+          queryParameters: {'email': authState.email!},
+        );
+        return;
+      }
+
       if (success) {
         context.go('/');
       } else {
         _showMessage(
-          ref.read(authNotifierProvider).errorMessage ??
-              'Login failed. Please try again.',
+          authState.errorMessage ?? 'Login failed. Please try again.',
         );
       }
     } catch (e) {
@@ -69,8 +80,9 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF162A63),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -84,8 +96,9 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF5383B8), Color(0xFF13224E)],
+                  end: Alignment.center,
+
+                  colors: [Color(0xFFCBEDFB), Color(0xFF191970)],
                 ),
               ),
               child: Column(
@@ -106,6 +119,17 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
                       ),
                     ],
                   ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.white.withOpacity(0.9),
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -114,9 +138,14 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
                       padding: const EdgeInsets.all(40.0),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(12.0),
+                        borderRadius: BorderRadius.circular(50.0),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.15),
+                          color: const Color.fromARGB(
+                            255,
+                            253,
+                            253,
+                            253,
+                          ).withOpacity(0.9),
                           width: 1.0,
                         ),
                       ),
@@ -180,7 +209,7 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
-                            width: 180,
+                            width: isMobile ? double.infinity : 180,
                             height: 46,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _submitLogin,

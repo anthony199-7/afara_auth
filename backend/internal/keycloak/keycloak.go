@@ -126,6 +126,48 @@ func (kc *Client) CreateUser(ctx context.Context, email, password string) (strin
 	userID := parts[len(parts)-1]
 	return userID, nil
 }
+// FindUserIDByEmail resolves the live Keycloak user ID for an email in the admin API.
+func (kc *Client) FindUserIDByEmail(ctx context.Context, email string) (string, error) {
+	adminToken, err := kc.getClientAccessToken(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get admin token: %w", err)
+	}
+
+	queryURL := fmt.Sprintf("%s/admin/realms/%s/users?email=%s",
+		kc.cfg.KeycloakURL,
+		kc.cfg.KeycloakRealm,
+		url.QueryEscape(email),
+	)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to build find user request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+adminToken)
+
+	resp, err := kc.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to query keycloak user by email: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("keycloak returned unexpected status %d when finding user by email: %s", resp.StatusCode, string(respBody))
+	}
+
+	var users []struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return "", fmt.Errorf("failed to decode keycloak user list: %w", err)
+	}
+	if len(users) == 0 {
+		return "", nil
+	}
+	return users[0].ID, nil
+}
+
 // EnableUser re-enables a Keycloak user account (called after OTP verification)
 func (kc *Client) EnableUser(ctx context.Context, keycloakUserID string) error {
 	adminToken, err := kc.getClientAccessToken(ctx)
@@ -268,4 +310,38 @@ func (kc *Client) GetUserInfo(ctx context.Context, accessToken string) (*UserInf
 		return nil, fmt.Errorf("failed to decode userinfo response: %w", err)
 	}
 	return &info, nil
+}
+// ResetPassword sets a new password for a Keycloak user via the Admin REST API
+func (kc *Client) ResetPassword(ctx context.Context, keycloakUserID, newPassword string) error {
+	adminToken, err := kc.getClientAccessToken(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get admin token: %w", err)
+	}
+	resetURL := fmt.Sprintf("%s/admin/realms/%s/users/%s/reset-password",
+		kc.cfg.KeycloakURL, kc.cfg.KeycloakRealm, keycloakUserID)
+	payload := map[string]interface{}{
+		"type":      "password",
+		"value":     newPassword,
+		"temporary": false,
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal reset payload: %w", err)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, resetURL, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("failed to build reset password request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+adminToken)
+	resp, err := kc.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to call keycloak reset-password: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		respBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("keycloak reset-password returned unexpected status %d: %s", resp.StatusCode, string(respBody))
+	}
+	return nil
 }

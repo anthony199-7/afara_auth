@@ -10,7 +10,7 @@ class AppTheme {
   // Spacing constants
   static const double spacingXS = 4.0;
   static const double spacingSM = 8.0;
-  static const double spacingMD = 16.0;
+  static const double spacingMD = 18.0;
   static const double spacingLG = 24.0;
   static const double spacingXL = 32.0;
   static const double spacingXXL = 48.0;
@@ -59,9 +59,34 @@ class AppTheme {
     if (width < mobileBreakpoint) {
       return width * 0.9;
     } else if (width < tabletBreakpoint) {
-      return 800.0;
+      return width * 0.92;
     } else {
-      return desktopBreakpoint;
+      return 1100.0;
+    }
+  }
+
+  static bool isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width < mobileBreakpoint;
+  }
+
+  static bool isTablet(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return width >= mobileBreakpoint && width < tabletBreakpoint;
+  }
+
+  static bool isDesktop(BuildContext context) {
+    return MediaQuery.of(context).size.width >= tabletBreakpoint;
+  }
+
+  /// Get responsive page max width for top-level content
+  static double responsivePageWidth(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < mobileBreakpoint) {
+      return width * 0.95;
+    } else if (width < tabletBreakpoint) {
+      return width * 0.95;
+    } else {
+      return 1200.0;
     }
   }
 
@@ -83,7 +108,7 @@ class AppTheme {
     if (width < mobileBreakpoint) {
       return 400.0;
     } else if (width < tabletBreakpoint) {
-      return 450.0;
+      return 400.0;
     } else {
       return headerHeight;
     }

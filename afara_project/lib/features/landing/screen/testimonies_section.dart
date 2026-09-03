@@ -6,10 +6,18 @@ class TestimonialsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final bool isMobile = width < 700;
+    final bool isTablet = width >= 700 && width < 1000;
 
     int columns = 4;
-    if (width < 1000) columns = 2;
-    if (width < 700) columns = 1;
+    if (isTablet) columns = 2;
+    if (isMobile) columns = 1;
+
+    final double titleFontSize = isMobile
+        ? 32
+        : width < 900
+        ? 38
+        : 48;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -24,7 +32,7 @@ class TestimonialsSection extends StatelessWidget {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _Title(),
+                    _Title(fontSize: titleFontSize),
                     const SizedBox(height: 20),
                     const _ViewAllButton(),
                   ],
@@ -32,9 +40,9 @@ class TestimonialsSection extends StatelessWidget {
               : Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Expanded(child: _Title()),
-                    _ViewAllButton(),
+                  children: [
+                    Expanded(child: _Title(fontSize: titleFontSize)),
+                    const _ViewAllButton(),
                   ],
                 ),
 
@@ -45,6 +53,11 @@ class TestimonialsSection extends StatelessWidget {
             crossAxisCount: columns,
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
+            childAspectRatio: columns == 1
+                ? 0.8
+                : columns == 2
+                ? 0.85
+                : 0.75,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
 
@@ -86,13 +99,18 @@ class TestimonialsSection extends StatelessWidget {
 }
 
 class _Title extends StatelessWidget {
-  const _Title();
+  final double fontSize;
+  const _Title({required this.fontSize});
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
+    return Text(
       "Trusted by organizations and industries worldwide",
-      style: TextStyle(fontSize: 48, fontWeight: FontWeight.w500, height: 1.2),
+      style: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.w500,
+        height: 1.2,
+      ),
     );
   }
 }
@@ -161,16 +179,9 @@ class TestimonialCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          Expanded(
-            child: SingleChildScrollView(
-              child: Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-            ),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w300),
           ),
 
           const SizedBox(height: 16),

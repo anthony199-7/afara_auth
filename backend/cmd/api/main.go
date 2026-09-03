@@ -48,6 +48,9 @@ func main() {
 	{
 		auth.POST("/register", otpLimiter.Middleware(), authHandler.Register)
 		auth.POST("/verify-otp", otpLimiter.Middleware(), authHandler.VerifyOTP)
+		auth.POST("/resend-otp", otpLimiter.Middleware(), authHandler.ResendOTP)
+		auth.POST("/forgot-password", otpLimiter.Middleware(), authHandler.ForgotPassword)
+		auth.POST("/reset-password", otpLimiter.Middleware(), authHandler.ResetPassword)
 		auth.POST("/login", authHandler.Login)
 		auth.POST("/refresh", authHandler.Refresh)
 		auth.POST("/logout", authHandler.Logout)

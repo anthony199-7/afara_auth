@@ -6,11 +6,15 @@ import "package:afara_project/core/local_storage.dart";
 class AuthService {
   final ApiClient _apiClient;
   AuthService(this._apiClient);
+
+  String _normalizeEmail(String email) => email.trim().toLowerCase();
+
   Future<void> register(String email, String password) async {
+    final normalizedEmail = _normalizeEmail(email);
     try {
       await _apiClient.dio.post(
         ApiConstants.registerEndpoint,
-        data: {'email': email, 'password': password},
+        data: {'email': normalizedEmail, 'password': password},
       );
     } on DioException catch (e) {
       throw _parseError(e);
@@ -18,10 +22,11 @@ class AuthService {
   }
 
   Future<void> verifyOtp(String email, String code) async {
+    final normalizedEmail = _normalizeEmail(email);
     try {
       await _apiClient.dio.post(
         ApiConstants.verifyOtpEndpoint,
-        data: {'email': email, 'code': code},
+        data: {'email': normalizedEmail, 'code': code},
       );
     } on DioException catch (e) {
       throw _parseError(e);
@@ -42,6 +47,50 @@ class AuthService {
       await LocalStorage.setRefreshToken(refreshToken);
       await LocalStorage.setEmail(email);
       return data;
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Future<void> resendOtp(String email) async {
+    final normalizedEmail = _normalizeEmail(email);
+    try {
+      await _apiClient.dio.post(
+        ApiConstants.resendOtpEndpoint,
+        data: {'email': normalizedEmail},
+      );
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Future<void> forgotPassword(String email) async {
+    final normalizedEmail = _normalizeEmail(email);
+    try {
+      await _apiClient.dio.post(
+        ApiConstants.forgotPasswordEndpoint,
+        data: {'email': normalizedEmail},
+      );
+    } on DioException catch (e) {
+      throw _parseError(e);
+    }
+  }
+
+  Future<void> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    final normalizedEmail = _normalizeEmail(email);
+    try {
+      await _apiClient.dio.post(
+        ApiConstants.resetPasswordEndpoint,
+        data: {
+          'email': normalizedEmail,
+          'code': code,
+          'new_password': newPassword,
+        },
+      );
     } on DioException catch (e) {
       throw _parseError(e);
     }

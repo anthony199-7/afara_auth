@@ -9,18 +9,31 @@ class Resources extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildHeader(context),
-        IdentitySecuritySection(),
-        const SizedBox(height: 20),
-        _buildResourcesHub(),
-        const SizedBox(height: 40),
-        WhitepaperSection(),
-        const SizedBox(height: 40),
-        FaqSection(),
-        const SizedBox(height: 40),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF191970), // #191970 at 100%
+            const Color(0xFFCBEDFB), // #CBEDFB at 50%
+            const Color(0xFFFFFFFF), // #FFFFFF at 0%
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.centerLeft,
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildHeader(context),
+          IdentitySecuritySection(),
+          const SizedBox(height: 20),
+          _buildResourcesHub(),
+          const SizedBox(height: 40),
+          WhitepaperSection(),
+          const SizedBox(height: 40),
+          FaqSection(),
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 }
@@ -33,7 +46,7 @@ Widget _buildHeader(BuildContext context) {
     padding: AppTheme.responsivePadding(
       context,
     ).copyWith(top: AppTheme.spacingXXL, bottom: AppTheme.spacingXXL),
-    decoration: BoxDecoration(
+    /*decoration: BoxDecoration(
       gradient: LinearGradient(
         colors: [
           Color(0xFF191970), // #191970 at 100%
@@ -44,7 +57,7 @@ Widget _buildHeader(BuildContext context) {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-    ),
+    ),*/
     child: LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < AppTheme.mobileBreakpoint;
@@ -74,9 +87,9 @@ Widget _buildHeaderContent(BuildContext context, {bool isMobile = false}) {
         "Resources and\nEducation Hub", // Adjusted text for better readability against gradient
         style: TextStyle(
           color: Colors.white, // Darker text for contrast
-          fontWeight: FontWeight.w900,
-          fontSize: 96,
-          height: 1.4,
+          fontWeight: FontWeight.w800,
+          fontSize: 55,
+
           letterSpacing: -0.02 * 96,
         ),
       ),

@@ -60,6 +60,12 @@ class _BusinessPasswordContentState extends State<BusinessPasswordContent> {
   Future<void> _registerUser() async {
     final password = _passwordController.text.trim();
     final confirmPassword = _retypePasswordController.text.trim();
+    final normalizedEmail = widget.email.trim().toLowerCase();
+
+    if (normalizedEmail.isEmpty) {
+      _showMessage('Email is missing. Please return to the registration step.');
+      return;
+    }
 
     if (password.isEmpty || confirmPassword.isEmpty) {
       _showMessage('Please enter and confirm your password.');
@@ -79,12 +85,12 @@ class _BusinessPasswordContentState extends State<BusinessPasswordContent> {
     setState(() => _isLoading = true);
     try {
       final authService = AuthService(ApiClient());
-      await authService.register(widget.email, password);
+      await authService.register(normalizedEmail, password);
       if (!mounted) return;
       _showMessage('Account created. Please verify your email.');
       context.goNamed(
         'business-verification',
-        queryParameters: {'email': widget.email},
+        queryParameters: {'email': normalizedEmail},
       );
     } catch (e) {
       if (!mounted) return;

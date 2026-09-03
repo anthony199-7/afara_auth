@@ -1,12 +1,9 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
-
 import 'package:afara_project/features/auth/auth_providers.dart';
+import 'package:afara_project/shared/footer.dart';
+import 'package:afara_project/shared/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:afara_project/shared/navbar.dart';
-import 'package:afara_project/shared/footer.dart';
 
 class BusinessLoginPage extends ConsumerStatefulWidget {
   const BusinessLoginPage({super.key});
@@ -16,17 +13,17 @@ class BusinessLoginPage extends ConsumerStatefulWidget {
 }
 
 class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
-  final _emailController = TextEditingController();
+  final _orgUrlController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  // final _orgUrlController = TextEditingController();
 
   Future<void> _submitLogin() async {
-    final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      _showMessage('Please enter both email and password.');
+    if (username.isEmpty || password.isEmpty) {
+      _showMessage('Please enter both username and password.');
       return;
     }
 
@@ -34,7 +31,8 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
     try {
       final success = await ref
           .read(authNotifierProvider.notifier)
-          .login(email, password);
+          .login(username, password);
+
       if (!mounted) return;
       if (success) {
         context.go('/');
@@ -63,8 +61,8 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-
+    _orgUrlController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -72,12 +70,10 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF162A63),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const TopNavigation(),
-            // MAIN HERO / BODY CONTENT WITH GRADIENT BACKGROUND
             Container(
               width: double.infinity,
               constraints: BoxConstraints(
@@ -86,8 +82,8 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF5383B8), Color(0xFF13224E)],
+                  end: Alignment.center,
+                  colors: [Color(0xFFCBEDFB), Color(0xFF191970)],
                 ),
               ),
               child: Column(
@@ -108,6 +104,17 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                       ),
                     ],
                   ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.white.withOpacity(0.9),
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -115,11 +122,15 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                       constraints: const BoxConstraints(maxWidth: 850),
                       padding: const EdgeInsets.all(40.0),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(12.0),
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(50.0),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.15),
-                          width: 1.0,
+                          color: const Color.fromARGB(
+                            255,
+                            255,
+                            254,
+                            254,
+                          ).withValues(alpha: 0.25),
                         ),
                       ),
                       child: Column(
@@ -136,43 +147,107 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                           const SizedBox(height: 24),
                           LayoutBuilder(
                             builder: (context, constraints) {
-                              bool isWide =
-                                  constraints.maxWidth >
-                                  700; // Adjusted breakpoint for 3 fields
-                              if (isWide) {
-                                return Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildInputField(
-                                        label: 'Email Address',
-                                        hint: 'Enter your email',
-                                        controller: _emailController,
-                                        obscure: false,
-                                      ),
+                              final isWide = constraints.maxWidth > 600;
+                              return Column(
+                                children: [
+                                  if (isWide)
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildInputField(
+                                            label: 'Organization URL',
+                                            hint: 'Company Name',
+                                            controller: _orgUrlController,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Container(
+                                          height: 50,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          margin: const EdgeInsets.only(
+                                            top: 28,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              8.0,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.25,
+                                              ),
+                                            ),
+                                            color: Colors.white.withValues(
+                                              alpha: 0.04,
+                                            ),
+                                          ),
+                                          child: DropdownButton<String>(
+                                            value: 'afara.com',
+                                            dropdownColor: const Color(
+                                              0xFF222B69,
+                                            ),
+                                            icon: const Icon(
+                                              Icons.keyboard_arrow_down,
+                                              color: Color.fromARGB(
+                                                255,
+                                                253,
+                                                253,
+                                                253,
+                                              ),
+                                            ),
+                                            style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                255,
+                                                255,
+                                                255,
+                                                255,
+                                              ),
+                                            ),
+                                            underline: const SizedBox(),
+                                            items: ['afara.com']
+                                                .map(
+                                                  (val) => DropdownMenuItem(
+                                                    value: val,
+                                                    child: Text(val),
+                                                  ),
+                                                )
+                                                .toList(),
+                                            onChanged: (_) {},
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 20),
 
-                                    const SizedBox(width: 20),
-                                    Expanded(
-                                      child: _buildInputField(
-                                        label: 'Password',
-                                        hint: 'Enter your password',
-                                        controller: _passwordController,
-                                        obscure: true,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              } else {
-                                return Column(
-                                  children: [
+                                  const SizedBox(height: 16),
+                                  // Row 2: Username & Password Side-by-Side on Desktop
+                                  if (isWide)
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildInputField(
+                                            label: 'Username',
+                                            hint: 'Enter your username',
+                                            controller: _usernameController,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildInputField(
+                                            label: 'Password',
+                                            hint: 'Enter your password',
+                                            controller: _passwordController,
+                                            obscure: true,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  else ...[
                                     _buildInputField(
-                                      label: 'Email Address',
-                                      hint: 'Enter your email',
-                                      controller: _emailController,
-                                      obscure: false,
+                                      label: 'Username',
+                                      hint: 'Enter your username',
+                                      controller: _usernameController,
                                     ),
-
                                     const SizedBox(height: 16),
                                     _buildInputField(
                                       label: 'Password',
@@ -181,46 +256,54 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                                       obscure: true,
                                     ),
                                   ],
-                                );
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: 180,
-                            height: 46,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _submitLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF162A63),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFF162A63),
-                                      ),
-                                    )
-                                  : const Text('Continue'),
-                            ),
-                          ),
 
-                          const SizedBox(height: 24),
-                          _formFooterLink(
-                            'Forgot Password?',
-                            onTap: () =>
-                                context.go('/auth/business/forgot-password'),
-                          ),
-                          const SizedBox(height: 8),
-                          _formFooterLink(
-                            'New Afara customer? Sign up for free',
-                            onTap: () => context.go('/auth/business/register'),
+                                  const SizedBox(height: 28),
+                                  SizedBox(
+                                    width: isWide ? 180 : double.infinity,
+                                    height: 46,
+                                    child: ElevatedButton(
+                                      onPressed: _isLoading
+                                          ? null
+                                          : _submitLogin,
+                                      style: ElevatedButton.styleFrom(
+                                        // backgroundColor: Colors.white,
+                                        foregroundColor: const Color(
+                                          0xFF13184E,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
+                                        ),
+                                      ),
+                                      child: _isLoading
+                                          ? const SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Color(0xFF13184E),
+                                              ),
+                                            )
+                                          : const Text('Continue'),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  _formFooterLink(
+                                    'Need help signing in?',
+                                    onTap: () => context.go(
+                                      '/auth/business/forgot-password',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _formFooterLink(
+                                    'New Afara customer? Sign up for free',
+                                    onTap: () =>
+                                        context.go('/auth/business/register'),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -229,6 +312,7 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                 ],
               ),
             ),
+            const SizedBox(width: 10),
             const MainFooter(),
           ],
         ),
@@ -248,7 +332,9 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isActive ? Colors.white : Colors.transparent,
+              color: isActive
+                  ? const Color.fromARGB(255, 13, 12, 105)
+                  : Colors.transparent,
               width: 3.0,
             ),
           ),
@@ -256,8 +342,10 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
         child: Text(
           title,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.white.withOpacity(0.5),
-            fontSize: 26,
+            color: isActive
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.5),
+            fontSize: 22,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -269,7 +357,7 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
     required String label,
     required String hint,
     required TextEditingController controller,
-    required bool obscure,
+    bool obscure = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +378,7 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
               fontSize: 14,
             ),
             contentPadding: const EdgeInsets.symmetric(
@@ -298,10 +386,12 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
               vertical: 16,
             ),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.04),
+            fillColor: Colors.white.withValues(alpha: 0.04),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.25)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.25),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -319,7 +409,12 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.8),
+          color: const Color.fromARGB(
+            255,
+            253,
+            252,
+            252,
+          ).withValues(alpha: 0.8),
           fontSize: 13,
           decoration: TextDecoration.underline,
         ),

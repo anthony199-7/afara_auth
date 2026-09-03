@@ -25,7 +25,8 @@ RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/main .
 
 # Expose the API port
-EXPOSE 8081
+ENV PORT=8082
+EXPOSE 8082
 
 # Command to run the application
 CMD ["./main"]

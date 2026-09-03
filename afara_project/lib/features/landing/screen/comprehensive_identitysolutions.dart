@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ComprehensiveIdentitySolutions extends StatelessWidget {
@@ -5,8 +6,13 @@ class ComprehensiveIdentitySolutions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 80),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 20 : 100,
+        vertical: 80,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -107,7 +113,7 @@ class ComprehensiveIdentitySolutions extends StatelessWidget {
                 title: 'Multi-Tenant Secure\nToken Services',
                 subtitle: 'Safely manage tokens across multiple organizations.',
                 linkText: 'Explore Platform Compatabillty',
-                image: Image.asset('lib/assets/images/image_0e70e0.png'),
+                image: Image.asset('lib/assets/images/Security.png'),
               ),
             ],
           ),
@@ -206,7 +212,10 @@ class SolutionsSection extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xff3b71ca),
                             foregroundColor: Colors.white,
-                            minimumSize: const Size(220, 48),
+                            minimumSize: Size(
+                              isMobile ? double.infinity : 220,
+                              48,
+                            ),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),

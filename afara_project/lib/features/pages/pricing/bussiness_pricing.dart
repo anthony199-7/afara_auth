@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:afara_project/shared/footer.dart';
 import 'package:afara_project/shared/navbar.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,8 @@ class NavigationTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Row(
@@ -80,7 +83,7 @@ class NavigationTabs extends StatelessWidget {
                 ),
               ),
               Container(
-                width: 160,
+                width: isMobile ? 100 : 160,
                 height: 3,
                 color: const Color.fromARGB(255, 29, 20, 83),
               ),
@@ -131,7 +134,7 @@ class PricingMatrixGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1100,
+        width: AppTheme.responsivePageWidth(context),
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -444,7 +447,7 @@ class SupportBannerSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1050,
+        width: AppTheme.responsivePageWidth(context),
         margin: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -566,7 +569,7 @@ class FAQAndMobilePromoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1050,
+        width: AppTheme.responsivePageWidth(context),
         padding: const EdgeInsets.symmetric(horizontal: 24),
         margin: const EdgeInsets.only(bottom: 60),
         child: LayoutBuilder(

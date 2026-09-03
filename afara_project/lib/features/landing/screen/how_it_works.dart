@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class HowItWorksDemoSection extends StatelessWidget {
@@ -15,7 +16,9 @@ class HowItWorksDemoSection extends StatelessWidget {
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
+          constraints: BoxConstraints(
+            maxWidth: AppTheme.responsivePageWidth(context),
+          ),
           child: isMobile ? const _MobileLayout() : const _DesktopLayout(),
         ),
       ),

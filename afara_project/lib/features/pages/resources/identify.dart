@@ -8,18 +8,18 @@ class IdentitySecuritySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: AppTheme.responsiveMaxWidth(context),
-      decoration: BoxDecoration(
+      /*decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment(-0.50, 0.00),
           end: Alignment(-0.50, 1.00),
           colors: [
             Color(0xFFFFFFFF), // #FFFFFF at 0%
-            Color(0xFFCBEDFB), // #CBEDFB at 50%
+            Color.fromARGB(255, 177, 191, 235), // #CBEDFB at 50%
             Color(0xFF191970), // #191970 at 100%
           ],
         ),
-      ),
-      padding: AppTheme.responsivePadding(context),
+      ),*/
+      //padding: AppTheme.responsivePadding(context),
       child: Column(
         children: [
           _buildTabBar(context),
@@ -67,7 +67,7 @@ class IdentitySecuritySection extends StatelessWidget {
               Container(
                 width: 80,
                 height: 1,
-                color: const Color.fromARGB(255, 165, 21, 21),
+                color: const Color.fromARGB(255, 19, 17, 17),
               ),
             ],
           ),
@@ -79,8 +79,8 @@ class IdentitySecuritySection extends StatelessWidget {
   // REFACTORED TAB BAR
   Widget _buildTabBar(BuildContext context) {
     return Container(
-      width: AppTheme.responsiveMaxWidth(context),
-      height: 50,
+      width: 650,
+      //height: 50,
       decoration: ShapeDecoration(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
       ),
@@ -88,11 +88,11 @@ class IdentitySecuritySection extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children:
               [
                 "Identity Security",
+
                 "Education",
                 "Company News",
                 "Industry News",
@@ -102,7 +102,7 @@ class IdentitySecuritySection extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(
                     horizontal: AppTheme.spacingLG,
                   ),
-                  padding: const EdgeInsets.only(bottom: 12),
+                  // padding: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     border: isActive
                         ? const Border(

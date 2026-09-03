@@ -24,11 +24,14 @@ type Config struct {
 	SMTPHost             string
 	SMTPPort             int
 	SMTPSender           string
+	SMTPUser             string
+	SMTPPassword         string
+	SMTPSecure           bool
+	Env                  string
 }
 
 // Load reads settings from environmental variables, optionally loading from a .env file first
 func Load() *Config {
-	// Load .env file if it exists (useful for running locally without Docker)
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found or unable to read it, fallback to default OS environment variables")
 	}
@@ -38,9 +41,10 @@ func Load() *Config {
 		log.Printf("Warning: SMTP_PORT is not a valid integer: %v. Defaulting to 1025", err)
 		smtpPort = 1025
 	}
+	smtpSecure, _ := strconv.ParseBool(getEnv("SMTP_SECURE", "false"))
 
 	return &Config{
-		Port:                 getEnv("PORT", "8081"),
+		Port:                 getEnv("PORT", "8082"),
 		DBHost:               getEnv("DB_HOST", "localhost"),
 		DBPort:               getEnv("DB_PORT", "5433"),
 		DBUser:               getEnv("DB_USER", "postgres"),
@@ -55,6 +59,10 @@ func Load() *Config {
 		SMTPHost:             getEnv("SMTP_HOST", "localhost"),
 		SMTPPort:             smtpPort,
 		SMTPSender:           getEnv("SMTP_SENDER", "noreply@authapp.local"),
+		SMTPUser:             getEnv("SMTP_USER", ""),
+		SMTPPassword:         getEnv("SMTP_PASSWORD", ""),
+		SMTPSecure:           smtpSecure,
+		Env:                  getEnv("ENV", "development"),
 	}
 }
 

@@ -1,3 +1,4 @@
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:afara_project/shared/footer.dart';
 import 'package:afara_project/shared/navbar.dart';
@@ -44,6 +45,8 @@ class NavigationTabHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = AppTheme.isMobile(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Column(
@@ -57,7 +60,11 @@ class NavigationTabHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Container(width: 160, height: 3, color: Colors.white),
+          Container(
+            width: isMobile ? 100 : 160,
+            height: 3,
+            color: Colors.white,
+          ),
         ],
       ),
     );

@@ -1,15 +1,17 @@
 import 'package:afara_project/core/api_client.dart';
+import 'package:afara_project/core/theme/app_theme.dart';
 import 'package:afara_project/features/auth/auth_service.dart';
 import 'package:afara_project/shared/footer.dart';
 import 'package:afara_project/shared/navbar.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-class VerificationPage extends StatelessWidget {
+class IndividualVerificationPage extends StatelessWidget {
   final String email;
 
-  const VerificationPage({super.key, required this.email});
+  const IndividualVerificationPage({super.key, required this.email});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +50,7 @@ class _NavigationTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -59,23 +61,19 @@ class _NavigationTabs extends StatelessWidget {
                 child: const Text(
                   'For Individuals',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color.fromRGBO(255, 254, 254, 1),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const SizedBox(height: 4),
-              Container(width: 160, height: 3, color: Colors.white),
+              Container(
+                width: 160,
+                height: 3,
+                color: const Color.fromARGB(255, 250, 250, 248),
+              ),
             ],
-          ),
-          const SizedBox(width: 40),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'For Businesses',
-              style: TextStyle(color: Colors.white60, fontSize: 24),
-            ),
           ),
         ],
       ),
@@ -93,17 +91,17 @@ class MainVerificationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 1000,
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
+        width: AppTheme.responsivePageWidth(context),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            if (constraints.maxWidth < 850) {
+            if (constraints.maxWidth < 1000) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   VerificationInputCard(email: email),
-                  const SizedBox(height: 50),
-                  const SecurityIllustration(),
+                  const SizedBox(height: 40),
+                  const RightVectorGraphic(),
                 ],
               );
             } else {
@@ -115,7 +113,7 @@ class MainVerificationSection extends StatelessWidget {
                     child: VerificationInputCard(email: email),
                   ),
                   const SizedBox(width: 40),
-                  const Expanded(flex: 9, child: SecurityIllustration()),
+                  const Expanded(flex: 5, child: RightVectorGraphic()),
                 ],
               );
             }
@@ -143,6 +141,8 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
   );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   bool _isLoading = false;
+  int _cooldown = 0;
+  Timer? _timer;
 
   @override
   void dispose() {
@@ -152,6 +152,7 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
     for (final node in _focusNodes) {
       node.dispose();
     }
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -179,6 +180,41 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
     }
   }
 
+  void _startCooldown(int seconds) {
+    _timer?.cancel();
+    setState(() => _cooldown = seconds);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return timer.cancel();
+      if (_cooldown <= 1) {
+        timer.cancel();
+        setState(() => _cooldown = 0);
+      } else {
+        setState(() => _cooldown -= 1);
+      }
+    });
+  }
+
+  Future<void> _resendOtp() async {
+    if (_cooldown > 0) return;
+    if (widget.email.trim().isEmpty) {
+      _showMessage(
+        'We could not find the email for this verification request.',
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final authService = AuthService(ApiClient());
+      await authService.resendOtp(widget.email);
+      _showMessage('If an account exists, a new OTP was sent');
+      _startCooldown(30);
+    } catch (e) {
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -189,11 +225,14 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(120),
+      margin: EdgeInsets.all(120),
       decoration: BoxDecoration(
-        color: Colors.transparent,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white24, width: 1),
+        border: Border.all(
+          color: const Color.fromRGBO(252, 248, 248, 0.979),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +242,7 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w400,
-              color: Colors.white,
+              color: Color.fromARGB(255, 252, 253, 253),
             ),
           ),
           const SizedBox(height: 12),
@@ -211,7 +250,7 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
             'Please enter the verification code\nsent to ${widget.email}',
             style: const TextStyle(
               fontSize: 14,
-              color: Colors.white70,
+              color: Color.fromARGB(246, 255, 255, 255),
               height: 1.4,
             ),
           ),
@@ -235,8 +274,8 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _submitOtp,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
+                backgroundColor: const Color.fromARGB(255, 253, 253, 253),
+                foregroundColor: const Color.fromARGB(255, 7, 7, 7),
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -258,6 +297,15 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
                         color: Color(0xff12235a),
                       ),
                     ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: _cooldown == 0 && !_isLoading ? _resendOtp : null,
+            child: Text(
+              _cooldown == 0 ? 'Resend OTP' : 'Resend in $_cooldown s',
+
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
           ),
         ],
@@ -302,7 +350,9 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.white),
+            borderSide: const BorderSide(
+              color: Color.fromARGB(255, 251, 253, 253),
+            ),
           ),
         ),
       ),
@@ -310,76 +360,51 @@ class _VerificationInputCardState extends State<VerificationInputCard> {
   }
 }
 
-// Right Identity Illustration Simulation Component
-class SecurityIllustration extends StatelessWidget {
-  const SecurityIllustration({super.key});
+// Right Hand Vector Artwork Placeholder
+class RightVectorGraphic extends StatelessWidget {
+  const RightVectorGraphic({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Container(
-        height: 320,
-        width: double.infinity,
-        margin: null,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Bottom floor shadow oval representation
-            Positioned(
-              bottom: 0,
+            // If you have your vector illustration added inside assets, swap this Icon block out with:
+            Image.asset("lib/assets/images/verification.png"),
+            Opacity(
+              opacity: 0.85,
               child: Container(
-                width: 280,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  borderRadius: const BorderRadius.all(
-                    Radius.elliptical(280, 18),
-                  ),
-                ),
-              ),
-            ),
-            // Floating UI Mock Interface Card
-            Positioned(
-              left: 20,
-              bottom: 40,
-              child: Container(
-                width: 140,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: const Color(0xff578ef7),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black26, blurRadius: 10),
-                  ],
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
+                padding: const EdgeInsets.all(5),
+                decoration: const BoxDecoration(color: Colors.transparent),
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    const CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Colors.white,
-                      child: Image(
-                        image: AssetImage(
-                          'assets/verification_illustration.png',
+                    // Outer structural base ring matching the design footprint
+                    Positioned(
+                      bottom: 0,
+                      child: Container(
+                        width: 260,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.white12,
+                          borderRadius: BorderRadius.all(
+                            Radius.elliptical(260, 12),
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Container(width: 80, height: 8, color: Colors.white70),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 80,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Icon(
-                        Icons.lock_open,
-                        color: Color(0xff578ef7),
-                        size: 16,
-                      ),
+                    Column(
+                      children: [
+                        /*Icon(
+                          Icons.lock_person_outlined,
+                          size: 180,
+                          color: Colors.blue[200],
+                        ),*/
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ],
                 ),
