@@ -6,7 +6,6 @@ import (
 	"afara_auth/internal/keycloak"
 	"afara_auth/internal/model"
 	"afara_auth/internal/otp"
-	"log"
 	"net/http"
 	"time"
 
@@ -78,9 +77,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate OTP"})
 		return
 	}
-	if h.Cfg.Env == "development" {
-		log.Printf("[DEV OTP] registration email=%s code=%s", email, plainCode)
-	}
 	// 5. Hash the OTP before storing (security: never store plaintext OTPs)
 	hashedCode, err := otp.HashOTP(plainCode)
 	if err != nil {
@@ -93,7 +89,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 	// 7. Send OTP email (MailPit captures it locally)
-	if err := SendOTPEmail(h.Cfg, email, plainCode); err != nil {
+	if err := SendOTPEmail(h.Cfg, email, plainCode, 5*time.Minute); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send OTP email"})
 		return
 	}
@@ -105,7 +101,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // ── POST /verify-otp ──────────────────────────────────────────────────────────
 type VerifyOTPRequest struct {
 	Email string `json:"email" binding:"required,email"`
-	Code  string `json:"code"  binding:"required,len=6"`
+	Code  string `json:"code"  binding:"required,len=6,numeric"`
 }
 // VerifyOTP validates the 6-digit code and activates the user account
 func (h *AuthHandler) VerifyOTP(c *gin.Context) {
@@ -116,41 +112,28 @@ func (h *AuthHandler) VerifyOTP(c *gin.Context) {
 	}
 	email := sanitizeEmail(req.Email)
 	ctx := c.Request.Context()
-	// 1. Find latest active OTP for this email
-	record, err := h.DB.FindLatestActiveOTP(ctx, email)
+	result, err := h.DB.VerifyAndConsumeOTP(ctx, email, req.Code, 5)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 		return
 	}
-	if record == nil {
+	if !result.Found {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no active OTP found — please register or request a new code"})
 		return
 	}
-	// 2. Check expiry
-	if time.Now().After(record.ExpiresAt) {
-		_ = h.DB.InvalidateOTP(ctx, record.ID)
+	if result.Expired {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired — please request a new code"})
 		return
 	}
-	// 3. Rate-limit: max 5 attempts before invalidating the OTP
-	if record.Attempts >= 5 {
-		_ = h.DB.InvalidateOTP(ctx, record.ID)
+	if result.Locked {
 		c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many failed attempts — please request a new OTP"})
 		return
 	}
-	// 4. Verify the hashed code
-	if !otp.VerifyHash(req.Code, record.CodeHash) {
-		_ = h.DB.IncrementOTPAttempts(ctx, record.ID)
-		remaining := 5 - (record.Attempts + 1)
+	if !result.Valid {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":             "invalid OTP code",
-			"attempts_remaining": remaining,
+			"attempts_remaining": result.AttemptsRemaining,
 		})
-		return
-	}
-	// 5. Invalidate OTP (replay protection — one-time use only)
-	if err := h.DB.InvalidateOTP(ctx, record.ID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to invalidate OTP"})
 		return
 	}
 	// 6. Look up user by email in our DB
@@ -204,9 +187,6 @@ func (h *AuthHandler) ResendOTP(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate OTP"})
 		return
 	}
-	if h.Cfg.Env == "development" {
-		log.Printf("[DEV OTP] resend email=%s code=%s", email, plainCode)
-	}
 	hashedCode, err := otp.HashOTP(plainCode)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash OTP"})
@@ -218,7 +198,7 @@ func (h *AuthHandler) ResendOTP(c *gin.Context) {
 		return
 	}
 	// Send OTP email (do not reveal account existence details)
-	if err := SendOTPEmail(h.Cfg, email, plainCode); err != nil {
+	if err := SendOTPEmail(h.Cfg, email, plainCode, 5*time.Minute); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send OTP email"})
 		return
 	}
@@ -255,9 +235,6 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate OTP"})
 		return
 	}
-	if h.Cfg.Env == "development" {
-		log.Printf("[DEV OTP] forgot-password email=%s code=%s", email, plainCode)
-	}
 	hashedCode, err := otp.HashOTP(plainCode)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash OTP"})
@@ -267,7 +244,7 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save OTP"})
 		return
 	}
-	if err := SendOTPEmail(h.Cfg, email, plainCode); err != nil {
+	if err := SendOTPEmail(h.Cfg, email, plainCode, 15*time.Minute); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send OTP email"})
 		return
 	}
@@ -277,7 +254,7 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 // ── POST /reset-password ───────────────────────────────────────────────────
 type ResetPasswordRequest struct {
 	Email       string `json:"email" binding:"required,email"`
-	Code        string `json:"code" binding:"required,len=6"`
+	Code        string `json:"code" binding:"required,len=6,numeric"`
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 // ResetPassword verifies the OTP and updates the user's password in Keycloak
@@ -289,41 +266,28 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	}
 	email := sanitizeEmail(req.Email)
 	ctx := c.Request.Context()
-	// 1. Find latest active OTP for this email
-	record, err := h.DB.FindLatestActiveOTP(ctx, email)
+	result, err := h.DB.VerifyAndConsumeOTP(ctx, email, req.Code, 5)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 		return
 	}
-	if record == nil {
+	if !result.Found {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no active OTP found — request a new code"})
 		return
 	}
-	// 2. Check expiry
-	if time.Now().After(record.ExpiresAt) {
-		_ = h.DB.InvalidateOTP(ctx, record.ID)
+	if result.Expired {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired — please request a new code"})
 		return
 	}
-	// 3. Rate-limit attempts
-	if record.Attempts >= 5 {
-		_ = h.DB.InvalidateOTP(ctx, record.ID)
+	if result.Locked {
 		c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many failed attempts — please request a new OTP"})
 		return
 	}
-	// 4. Verify the hashed code
-	if !otp.VerifyHash(req.Code, record.CodeHash) {
-		_ = h.DB.IncrementOTPAttempts(ctx, record.ID)
-		remaining := 5 - (record.Attempts + 1)
+	if !result.Valid {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":              "invalid OTP code",
-			"attempts_remaining": remaining,
+			"attempts_remaining": result.AttemptsRemaining,
 		})
-		return
-	}
-	// 5. Invalidate OTP
-	if err := h.DB.InvalidateOTP(ctx, record.ID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to invalidate OTP"})
 		return
 	}
 	// 6. Find user and update password via Keycloak

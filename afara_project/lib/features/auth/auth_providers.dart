@@ -63,12 +63,25 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<bool> verifyLoginOtp(String email, String code) async {
+    state = AuthState.loading();
+    try {
+      await _authService.verifyOtp(email, code);
+      final profile = await _authService.getProfile();
+      state = AuthState.authenticated(profile);
+      return true;
+    } catch (e) {
+      state = AuthState.error(e.toString(), email: email);
+      return false;
+    }
+  }
+
   Future<bool> login(String email, String password) async {
     state = AuthState.loading();
     try {
       await _authService.login(email, password);
-      final profile = await _authService.getProfile();
-      state = AuthState.authenticated(profile);
+      await _authService.resendOtp(email);
+      state = AuthState.otpRequired(email);
       return true;
     } catch (e) {
       final message = e.toString();

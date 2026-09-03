@@ -7,7 +7,17 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 )
+
+// OTPVerificationResult describes the outcome of an atomic OTP consume attempt.
+type OTPVerificationResult struct {
+	Found             bool
+	Valid             bool
+	Expired           bool
+	Locked            bool
+	AttemptsRemaining int
+}
 
 // SaveOTP stores a hashed OTP code for an email, invalidating previous ones
 func (db *DB) SaveOTP(ctx context.Context, email, codeHash string, expiry time.Duration) error {
@@ -17,6 +27,12 @@ func (db *DB) SaveOTP(ctx context.Context, email, codeHash string, expiry time.D
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
+
+	// Serialize replacement requests for the same email. Without this lock,
+	// concurrent transactions can both insert an active OTP.
+	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext($1))`, email); err != nil {
+		return fmt.Errorf("failed to lock OTP email: %w", err)
+	}
 
 	// Invalidate previous active OTPs for this email by marking them verified
 	invalidateQuery := `
@@ -106,4 +122,62 @@ func (db *DB) InvalidateOTP(ctx context.Context, id int) error {
 		return fmt.Errorf("failed to invalidate OTP: %w", err)
 	}
 	return nil
+}
+
+// VerifyAndConsumeOTP serializes verification for one email and consumes a
+// valid code exactly once. Failed attempts are incremented while the row is
+// locked, so concurrent requests cannot bypass the limit.
+func (db *DB) VerifyAndConsumeOTP(ctx context.Context, email, code string, maxAttempts int) (OTPVerificationResult, error) {
+	tx, err := db.Pool.Begin(ctx)
+	if err != nil {
+		return OTPVerificationResult{}, fmt.Errorf("failed to begin OTP verification transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var record OTPRecord
+	err = tx.QueryRow(ctx, `
+		SELECT id, email, code_hash, expires_at, attempts, is_verified
+		FROM otp_codes
+		WHERE email = $1 AND is_verified = false
+		ORDER BY created_at DESC
+		LIMIT 1
+		FOR UPDATE
+	`, email).Scan(&record.ID, &record.Email, &record.CodeHash, &record.ExpiresAt, &record.Attempts, &record.IsVerified)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return OTPVerificationResult{}, nil
+	}
+	if err != nil {
+		return OTPVerificationResult{}, fmt.Errorf("failed to lock active OTP: %w", err)
+	}
+
+	result := OTPVerificationResult{Found: true}
+	if time.Now().After(record.ExpiresAt) {
+		if _, err = tx.Exec(ctx, `UPDATE otp_codes SET is_verified = true WHERE id = $1 AND is_verified = false`, record.ID); err != nil {
+			return OTPVerificationResult{}, fmt.Errorf("failed to expire OTP: %w", err)
+		}
+		result.Expired = true
+		return result, tx.Commit(ctx)
+	}
+	if record.Attempts >= maxAttempts {
+		if _, err = tx.Exec(ctx, `UPDATE otp_codes SET is_verified = true WHERE id = $1 AND is_verified = false`, record.ID); err != nil {
+			return OTPVerificationResult{}, fmt.Errorf("failed to lock OTP: %w", err)
+		}
+		result.Locked = true
+		return result, tx.Commit(ctx)
+	}
+
+	if bcrypt.CompareHashAndPassword([]byte(record.CodeHash), []byte(code)) == nil {
+		if _, err = tx.Exec(ctx, `UPDATE otp_codes SET is_verified = true WHERE id = $1 AND is_verified = false`, record.ID); err != nil {
+			return OTPVerificationResult{}, fmt.Errorf("failed to consume OTP: %w", err)
+		}
+		result.Valid = true
+		return result, tx.Commit(ctx)
+	}
+
+	newAttempts := record.Attempts + 1
+	if _, err = tx.Exec(ctx, `UPDATE otp_codes SET attempts = $1, is_verified = CASE WHEN $1 >= $2 THEN true ELSE is_verified END WHERE id = $3 AND is_verified = false`, newAttempts, maxAttempts, record.ID); err != nil {
+		return OTPVerificationResult{}, fmt.Errorf("failed to record OTP attempt: %w", err)
+	}
+	result.AttemptsRemaining = maxAttempts - newAttempts
+	return result, tx.Commit(ctx)
 }

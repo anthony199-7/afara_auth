@@ -36,12 +36,22 @@ class _LoginIndividualState extends ConsumerState<LoginIndividual> {
           .read(authNotifierProvider.notifier)
           .login(email, password);
       if (!mounted) return;
+
+      final authState = ref.read(authNotifierProvider);
+
+      if (authState.isOtpRequired && authState.email != null) {
+        context.goNamed(
+          'individual-login-verification',
+          queryParameters: {'email': authState.email!},
+        );
+        return;
+      }
+
       if (success) {
         context.go('/');
       } else {
         _showMessage(
-          ref.read(authNotifierProvider).errorMessage ??
-              'Login failed. Please try again.',
+          authState.errorMessage ?? 'Login failed. Please try again.',
         );
       }
     } catch (e) {

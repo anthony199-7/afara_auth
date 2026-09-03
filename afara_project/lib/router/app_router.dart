@@ -8,6 +8,7 @@ import 'package:afara_project/auth page/individuals_login.dart';
 import 'package:afara_project/auth page/password/business/passwordbusiness.dart';
 import 'package:afara_project/auth page/password/business/forget_password.dart';
 import 'package:afara_project/auth page/verificationpage/business_verification.dart';
+import 'package:afara_project/auth%20page/login_verification/login_verification.dart';
 import 'package:afara_project/auth%20page/verificationpage/verification_personal.dart';
 
 import 'package:afara_project/features/auth/profile_screen.dart';
@@ -22,8 +23,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
- 
-
   static final router = GoRouter(
     initialLocation: '/',
 
@@ -100,7 +99,7 @@ class AppRouter {
                 name: 'individual-register',
                 builder: (context, state) => const IndividualRegistration(),
               ),
-                GoRoute(
+              GoRoute(
                 path: 'individual/verification',
                 name: 'individual-verification',
                 builder: (context, state) {
@@ -176,6 +175,15 @@ class AppRouter {
                 name: 'business-success',
                 builder: (context, state) => const BusinessSuccessPage(),
               ),
+
+              GoRoute(
+                path: 'individual/login-verification',
+                name: 'individual-login-verification',
+                builder: (context, state) {
+                  final email = state.uri.queryParameters['email'] ?? '';
+                  return LoginOtpVerificationScreenPage(email: email);
+                },
+              ),
             ],
           ),
         ],
@@ -209,4 +217,3 @@ class AppRouter {
     ],
   );
 }
-

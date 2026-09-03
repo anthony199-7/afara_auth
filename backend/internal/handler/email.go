@@ -5,21 +5,22 @@ import (
 	"fmt"
 	"net/smtp"
 	"strings"
+	"time"
 
 	"afara_auth/internal/config"
 )
 
 // SendOTPEmail sends an OTP code to the user's email using SMTP with STARTTLS when needed.
-func SendOTPEmail(cfg *config.Config, toEmail, otpCode string) error {
+func SendOTPEmail(cfg *config.Config, toEmail, otpCode string, expiry time.Duration) error {
 	from := cfg.SMTPSender
 	to := toEmail
 	subject := "Your Verification Code"
 	body := fmt.Sprintf(`Hello,
 Your one-time verification code is:
     %s
-This code will expire in 5 minutes.
+This code will expire in %s.
 If you did not request this code, please ignore this email.
-– AuthApp Team`, otpCode)
+– AuthApp Team`, otpCode, expiry.Round(time.Minute))
 	message := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s",
 		from, to, subject, body)
 	addr := fmt.Sprintf("%s:%d", cfg.SMTPHost, cfg.SMTPPort)
@@ -87,6 +88,7 @@ If you did not request this code, please ignore this email.
 	}
 	return client.Quit()
 }
+
 // sanitizeEmail lowercases and trims whitespace from an email input
 func sanitizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
